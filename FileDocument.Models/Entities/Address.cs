@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FileDocument.Models.Entities
 {
@@ -16,5 +17,8 @@ namespace FileDocument.Models.Entities
         public string District { get; set; }
         [Required]
         public string City { get; set; }
+        public string UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; }
     }
 }

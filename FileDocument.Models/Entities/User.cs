@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FileDocument.Models.Entities
 {
-    public class ApplicationUser : IdentityUser
+    public class User : IdentityUser
     {
         [Required]
         public string FristName { get; set; }
@@ -13,5 +13,6 @@ namespace FileDocument.Models.Entities
         public bool Gender { get; set; }
         public bool Disable { get; set; } = false;
         public Address Address { get; set; }
+        public virtual ICollection<Group> Groups { get; set; }
     }
 }
