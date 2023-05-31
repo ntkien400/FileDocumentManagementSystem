@@ -29,5 +29,6 @@ namespace FileDocument.DataAccess
         public DbSet<GroupUser> GroupUsers { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<SystemConfigure> SystemConfigures { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }
