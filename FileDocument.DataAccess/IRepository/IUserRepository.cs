@@ -5,13 +5,9 @@ namespace FileDocument.DataAccess.IRepository
 {
     public interface IUserRepository : IGenericRepository<User>
     {
-        Task<LoginResult> Login(LoginDto loginDto);
-        Task Logout();
-        Task ForgotPassword(string email);
-        Task ResetPassword(string newPassword);
-        Task<RegisterResult> Register(User user);
-        Task<RefreshTokenDto> GenerateAccessToken(User user);
-        public User GetUserFromAccessToken(string token);
+        Task<RefreshToken> GenerateRefreshToken(string userId, string tokenId);
         Task<bool> ValidateRefreshToken(User user, string refreshToken);
+        public bool CheckValidEmail(string email);
+        public bool CheckValidPhoneNumber(string phoneNumber);
     }
 }

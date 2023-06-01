@@ -14,10 +14,11 @@ namespace FileDocument.DataAccess.UnitOfWork
         public UnitOfWork(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-            //Address = new AddressRepository(_dbContext);
+            Address = new AddressRepository(_dbContext);
         }
 
         public IAddressRepository Address { get; private set; }
+        public IUserRepository User { get; private set; }
 
         public async Task DisposeAsync()
         {

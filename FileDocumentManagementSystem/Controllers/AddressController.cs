@@ -34,6 +34,7 @@ namespace FileDocumentManagementSystem.Controllers
         public async Task<ActionResult<Address>> GetAddressById(int id)
         {
             var address = await _unit.Address.GetAsync(a => a.Id == id);
+            
             if (address != null)
             {
                 return Ok(new Address
@@ -47,10 +48,8 @@ namespace FileDocumentManagementSystem.Controllers
                     UserId = address.UserId
                 });
             }
-            else
-            {
-                return BadRequest("Address not exists");
-            }
+            
+            return NotFound("Address not exists");
         }
 
         [HttpPost]
@@ -85,47 +84,43 @@ namespace FileDocumentManagementSystem.Controllers
         public async Task<ActionResult> UpdateAddress([FromForm] AddressDto addressDto, int id)
         {
             var address = await _unit.Address.GetAsync(a => a.Id == id);
+            
             if(address != null)
             {
                 _mapper.Map(addressDto, address);
                 await _unit.Address.AddAsync(address);
                 var count = await _unit.SaveChangesAsync();
+                
                 if(count > 0)
                 {
                     return Ok("Update successfully");
                 }
-                else
-                {
-                    return BadRequest("Something went wrong when updating");
-                }
+                
+                return BadRequest("Something went wrong when updating");
             }
-            else
-            {
-                return BadRequest("Address is not exists");
-            }
+            
+            return NotFound("Address is not exists");
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteAddress(int id)
         {
             var address = await _unit.Address.GetAsync(a => a.Id == id);
+            
             if(address != null)
             {
                 _unit.Address.Delete(address);
                 var count = await _unit.SaveChangesAsync();
+                
                 if(count > 0)
                 {
                     return Ok("Delete successfully");
                 }
-                else
-                {
-                    return BadRequest("Something went wrong when deleting");
-                }
+                
+                return BadRequest("Something went wrong when deleting");
             }
-            else
-            {
-                return BadRequest("Address is not exists");
-            }
+            
+            return NotFound("Address is not exists");
         }
     }
 }

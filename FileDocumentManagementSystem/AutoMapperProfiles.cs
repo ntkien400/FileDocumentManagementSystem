@@ -9,6 +9,7 @@ namespace FileDocumentManagementSystem
         public AutoMapperProfiles()
         {
             CreateMap<AddressDto, Address>().ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<RegisterDto, User>().ForAllMembers(otp => otp.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

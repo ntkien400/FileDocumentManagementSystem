@@ -10,6 +10,7 @@ namespace FileDocument.DataAccess.UnitOfWork
     public interface IUnitOfWork
     {
         IAddressRepository Address { get; }
+        IUserRepository User { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }
