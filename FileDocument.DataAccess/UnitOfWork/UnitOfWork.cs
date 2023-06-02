@@ -15,10 +15,13 @@ namespace FileDocument.DataAccess.UnitOfWork
         {
             _dbContext = dbContext;
             Address = new AddressRepository(_dbContext);
+            User = new UserRepository(_dbContext);
+            Authenticate = new AuthRepository(_dbContext);
         }
 
         public IAddressRepository Address { get; private set; }
         public IUserRepository User { get; private set; }
+        public IAuthRepository Authenticate { get; private set; }
 
         public async Task DisposeAsync()
         {

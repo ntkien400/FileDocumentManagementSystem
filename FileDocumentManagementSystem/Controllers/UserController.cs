@@ -24,23 +24,14 @@ namespace FileDocumentManagementSystem.Controllers
     {
         private readonly IUnitOfWork _unit;
         private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
-        private readonly IConfiguration _configuration;
         private readonly ISendEmail _sendEmail;
         private readonly IMapper _mapper;
 
-        public UserController(IUnitOfWork unit,
-                              IMapper mapper,
-                              UserManager<User> userManager,
-                              SignInManager<User> signInManager,
-                              IConfiguration configuration,
-                              ISendEmail sendEmail)
+        public UserController(IUnitOfWork unit, IMapper mapper, UserManager<User> userManager, ISendEmail sendEmail)
         {
             _unit = unit;
             _mapper = mapper;
             _userManager = userManager;
-            _signInManager = signInManager;
-            _configuration = configuration;
             _sendEmail = sendEmail;
         }
 
@@ -72,13 +63,13 @@ namespace FileDocumentManagementSystem.Controllers
             return NotFound("User not exists");
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<RegisterDto>> Register([FromForm] RegisterDto register)
+        [HttpPost("create-user")]
+        public async Task<ActionResult<RegisterDto>> CreateUser([FromForm] RegisterDto register)
         {
             var isExistEmail = await _userManager.FindByEmailAsync(register.Email);
             var isExistPhoneNumber = await _unit.User.GetAsync(x => x.PhoneNumber == register.PhoneNumber);
             var validEmail = _unit.User.CheckValidEmail(register.Email);
-            var validPhoneNumber = _unit.User.CheckValidEmail(register.PhoneNumber);
+            var validPhoneNumber = _unit.User.CheckValidPhoneNumber(register.PhoneNumber);
             if (isExistEmail == null && isExistPhoneNumber == null)
             {
                 if (!validEmail)
@@ -93,10 +84,18 @@ namespace FileDocumentManagementSystem.Controllers
 
                 User user = new User();
                 _mapper.Map(register, user);
-                var createUser = await _userManager.CreateAsync(user);
+                user.UserName = register.Email;
+                var createUser = await _userManager.CreateAsync(user, register.Password);
 
                 if (createUser.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, StaticUserRoles.Default);
+
+                    if (user.Email == "ntkien400@gmail.com")
+                    {
+                        await _userManager.AddToRoleAsync(user, StaticUserRoles.Admin);
+                    }
+                    
                     return Ok($"Create User Successfully \n {user}");
                 }
                 else
@@ -112,44 +111,6 @@ namespace FileDocumentManagementSystem.Controllers
             }
 
             return BadRequest("Email or PhoneNumber has been used");
-        }
-
-        [HttpPost("login")]
-        public async Task<ActionResult> Login(LoginDto login)
-        {
-            var user = await _userManager.FindByEmailAsync(login.Email);
-            var checkPassword = await _userManager.CheckPasswordAsync(user, login.Password);
-            var signIn = await _signInManager.PasswordSignInAsync(user, login.Password, false, false);
-
-            if (checkPassword && user != null && signIn.Succeeded)
-            {
-                RefreshTokenDto refreshTokenDto = await GenerateAccessToken(user);
-                return Ok(refreshTokenDto);
-            }
-
-            return Unauthorized("Email or Password is wrong");
-        }
-
-        [HttpPost("logout")]
-        public async Task<ActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok("Logout successfully");
-        }
-
-        [HttpPost("refresh-token")]
-        public async Task<ActionResult> RefreshToken(RefreshTokenDto refreshTokenDto)
-        {
-            var user = await GetUserFromAccessToken(refreshTokenDto.Token);
-            var validateToken = await _unit.User.ValidateRefreshToken(user, refreshTokenDto.RefreshToken);
-            if(user != null && validateToken)
-            {
-                await _signInManager.RefreshSignInAsync(user);
-                RefreshTokenDto refreshToken = await GenerateAccessToken(user);
-                return Ok(refreshToken);
-            }
-            
-            return Unauthorized();
         }
 
         [HttpPost("forgot-password")]
@@ -238,74 +199,6 @@ namespace FileDocumentManagementSystem.Controllers
             return NotFound("User is not exists");
         }
 
-
-        private async Task<RefreshTokenDto> GenerateAccessToken(User user)
-        {
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var authClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
-            var token = GenerateNewJWT(authClaims);
-            var refresTokenDto = new RefreshTokenDto
-            {
-                RefreshToken = (await _unit.User.GenerateRefreshToken(user.Id, token.Id)).Token,
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Expires = token.ValidTo
-            };
-            return refresTokenDto;
-        }
-
-        private async Task<User> GetUserFromAccessToken(string token)
-        {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-            var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
-
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidAudience = _configuration["JWT:ValidAudience"],
-                ValidIssuer = _configuration["JWT:ValidIssuer"],
-                IssuerSigningKey = authSigningKey,
-                RequireExpirationTime = false,
-                ValidateLifetime = false,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            SecurityToken securityToken;
-            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
-            JwtSecurityToken jwtSecurityToken = securityToken as JwtSecurityToken;
-
-            if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase))
-            {
-                var userEmail = principal.FindFirstValue(ClaimTypes.Email);
-                var userInfo = await _unit.User.GetAsync(a => a.Email == userEmail);
-                return userInfo;
-            }
-
-            return null;
-        }
-
-        private JwtSecurityToken GenerateNewJWT(List<Claim> authClaims)
-        {
-            var authSerect = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-            var tokenObject = new JwtSecurityToken(
-                    issuer: _configuration["JWT:ValidIssuer"],
-                    audience: _configuration["JWT:ValidAudience"],
-                    expires: DateTime.Now.AddMinutes(30),
-                    claims: authClaims,
-                    signingCredentials: new SigningCredentials(authSerect, SecurityAlgorithms.HmacSha512Signature)
-                );
-            return tokenObject;
-        }
+        
     }
 }

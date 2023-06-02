@@ -11,6 +11,7 @@ namespace FileDocument.DataAccess.UnitOfWork
     {
         IAddressRepository Address { get; }
         IUserRepository User { get; }
+        IAuthRepository Authenticate { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }

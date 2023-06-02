@@ -73,7 +73,7 @@ namespace FileDocument.DataAccess.Repository
                     query = query.Include(property);
                 }
             }
-            return await query.FirstAsync();
+            return await query.FirstOrDefaultAsync();
         }
 
     }
