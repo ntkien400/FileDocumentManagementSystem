@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FileDocument.Models.Entities
 {
-    public class GroupUser
+    public class GroupMember
     {
         public string UserId { get; set; }
         public string GroupId { get; set; }

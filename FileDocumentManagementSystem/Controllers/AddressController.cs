@@ -5,6 +5,7 @@ using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -52,7 +53,7 @@ namespace FileDocumentManagementSystem.Controllers
             return NotFound("Address not exists");
         }
 
-        [HttpPost]
+        [HttpPost("inser-address")]
         public async Task<ActionResult<AddressDto>>  InsertAddress([FromForm]AddressDto addressDto)
         {
             var checkFeildNull = addressDto.GetType()
@@ -63,6 +64,7 @@ namespace FileDocumentManagementSystem.Controllers
             {
                 var address = new Address();
                 _mapper.Map(addressDto, address);
+                address.UserId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier).Value;
                 await _unit.Address.AddAsync(address);
                 var count = await _unit.SaveChangesAsync();
                 if (count > 0)

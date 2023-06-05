@@ -1,9 +1,4 @@
 ﻿using FileDocument.DataAccess.IRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FileDocument.DataAccess.UnitOfWork
 {
@@ -12,6 +7,10 @@ namespace FileDocument.DataAccess.UnitOfWork
         IAddressRepository Address { get; }
         IUserRepository User { get; }
         IAuthRepository Authenticate { get; }
+        IGroupRepository Group { get; }
+        IGroupMemberRepository GroupUser { get; }
+        IPermissionRepoitory Permission { get; }
+        ISystemConfigureRepository SystemConfigure { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }

@@ -2,8 +2,8 @@
 
 namespace FileDocument.DataAccess.IRepository
 {
-    public interface IGroupRepository : IGenericRepository<Group>
+    public interface IPermissionRepoitory : IGenericRepository<Permission>
     {
-        Task<Group> GetLastGroup();
+
     }
 }

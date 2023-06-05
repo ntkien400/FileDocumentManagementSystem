@@ -189,14 +189,30 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("change-owner")]
-        //public async Task<ActionResult> ChangeOwner(string email)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(email);
-        //    if (user != null)
-        //    {
-
-        //    }
-        //}
+        public async Task<ActionResult> ChangeOwner(string email, string password)
+        {
+            var newOwner = await _userManager.FindByEmailAsync(email);
+            var token = await HttpContext.GetTokenAsync("access_token");
+            if(token != null)
+            {
+                var oldOwner = await GetUserFromAccessToken(token);
+                
+                if(oldOwner != null && newOwner != null)
+                {
+                    var checkPassword = await _userManager.CheckPasswordAsync(oldOwner, password);
+                    if(checkPassword && newOwner.IsTokenValid)
+                    {
+                        await _userManager.AddToRoleAsync(newOwner, StaticUserRoles.Admin);
+                        await _userManager.RemoveFromRoleAsync(oldOwner, StaticUserRoles.Admin);
+                        await _signInManager.SignOutAsync();
+                        return Ok($"{oldOwner.Email} is no longer the owner of system,{newOwner.Email} become new owner of system.");
+                    }
+                    return BadRequest("Wrong password or selected user was disable");
+                }
+                return NotFound("Can't find the user");
+            }
+            return NotFound("Can't get the token");
+        }
 
         private async Task<RefreshTokenDto> GenerateAccessToken(User user)
         {
@@ -269,6 +285,7 @@ namespace FileDocumentManagementSystem.Controllers
 
         private IEnumerable<string> GetRoles()
         {
+            yield return StaticUserRoles.Default;
             yield return StaticUserRoles.Crew;
             yield return StaticUserRoles.Pilot;
             yield return StaticUserRoles.GO;

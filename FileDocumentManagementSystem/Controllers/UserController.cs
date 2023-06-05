@@ -120,7 +120,7 @@ namespace FileDocumentManagementSystem.Controllers
             if (user != null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var uriBuilder = new UriBuilder("https://localhost:7102/reset-password");
+                var uriBuilder = new UriBuilder("https://localhost:7102/User/reset-password");
                 var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
                 query["token"] = token;
                 query["email"] = email;
@@ -134,10 +134,10 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("reset-password")]
-        public async Task<ActionResult> ResetPassword(string token, string email)
+        public ActionResult<ResetPasswordDto> ResetPassword(string token, string email)
         {
             var resetPassword = new ResetPasswordDto { Email = email, Token = token };
-            return Ok(new { resetPassword });
+            return resetPassword;
         }
 
         [HttpPost("reset-password")]

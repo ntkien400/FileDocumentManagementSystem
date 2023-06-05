@@ -13,7 +13,7 @@ namespace FileDocument.DataAccess
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.Entity<GroupUser>().HasKey(gu => new { gu.UserId, gu.GroupId });
+            builder.Entity<GroupMember>().HasKey(gu => new { gu.UserId, gu.GroupId });
             base.OnModelCreating(builder);
         }
         public DbSet<Address> Addresses { get; set; }
@@ -26,7 +26,7 @@ namespace FileDocument.DataAccess
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupDocPermission> GroupDocPermissions { get; set; }
-        public DbSet<GroupUser> GroupUsers { get; set; }
+        public DbSet<GroupMember> GroupMember { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<SystemConfigure> SystemConfigures { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
