@@ -8,7 +8,7 @@ namespace FileDocument.Models.Entities
         [Key]
         public int Id { get; set; }
         [Required]
-        public string Theme { get; set; }
+        public string Theme { get; set; } = "Default";
         [Required]
         public string LogoUrl { get; set; }
         [Required]

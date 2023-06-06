@@ -11,6 +11,8 @@ namespace FileDocument.DataAccess.UnitOfWork
         IGroupMemberRepository GroupUser { get; }
         IPermissionRepoitory Permission { get; }
         ISystemConfigureRepository SystemConfigure { get; }
+        IGroupDocTypePermissionRepository GroupDocTypePermission { get; }
+        IDocumentTypeRepository DocumentType { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }

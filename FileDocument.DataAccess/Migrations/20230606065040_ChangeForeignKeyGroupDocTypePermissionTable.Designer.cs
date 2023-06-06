@@ -4,6 +4,7 @@ using FileDocument.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileDocument.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230606065040_ChangeForeignKeyGroupDocTypePermissionTable")]
+    partial class ChangeForeignKeyGroupDocTypePermissionTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +61,7 @@ namespace FileDocument.DataAccess.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Aircraft", b =>
@@ -89,7 +91,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Aircrafts", (string)null);
+                    b.ToTable("Aircrafts");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Airport", b =>
@@ -108,7 +110,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Airports", (string)null);
+                    b.ToTable("Airports");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Document", b =>
@@ -138,7 +140,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("FlightId");
 
-                    b.ToTable("Documents", (string)null);
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.DocumentRevision", b =>
@@ -171,7 +173,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DocumentRevisions", (string)null);
+                    b.ToTable("DocumentRevisions");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.DocumentType", b =>
@@ -179,19 +181,13 @@ namespace FileDocument.DataAccess.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DateUpdated")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("DocumentTypes", (string)null);
+                    b.ToTable("DocumentTypes");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Flight", b =>
@@ -229,7 +225,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("DestinationAircraftId");
 
-                    b.ToTable("Flights", (string)null);
+                    b.ToTable("Flights");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Group", b =>
@@ -254,7 +250,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Groups", (string)null);
+                    b.ToTable("Groups");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.GroupDocTypePermission", b =>
@@ -284,7 +280,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("PermissionId");
 
-                    b.ToTable("GroupDocTypePermissions", (string)null);
+                    b.ToTable("GroupDocTypePermissions");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.GroupMember", b =>
@@ -299,7 +295,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("GroupMember", (string)null);
+                    b.ToTable("GroupMember");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.Permission", b =>
@@ -316,7 +312,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions", (string)null);
+                    b.ToTable("Permissions");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.RefreshToken", b =>
@@ -355,7 +351,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.SystemConfigure", b =>
@@ -385,7 +381,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("SystemConfigures", (string)null);
+                    b.ToTable("SystemConfigures");
                 });
 
             modelBuilder.Entity("FileDocument.Models.Entities.User", b =>
@@ -479,7 +475,7 @@ namespace FileDocument.DataAccess.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("GroupUser", (string)null);
+                    b.ToTable("GroupUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

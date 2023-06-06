@@ -16,6 +16,8 @@ namespace FileDocument.DataAccess.UnitOfWork
             GroupUser = new GroupMemberRepository(_dbContext);
             Permission = new PermissionRepository(_dbContext);
             SystemConfigure = new SystemConfigureRepository(_dbContext);
+            GroupDocTypePermission = new GroupDocTypePermissionRepository(_dbContext);
+            DocumentType = new DocumentTypeRepository(_dbContext);
         }
 
         public IAddressRepository Address { get; private set; }
@@ -25,6 +27,8 @@ namespace FileDocument.DataAccess.UnitOfWork
         public IGroupMemberRepository GroupUser { get; private set; }
         public IPermissionRepoitory Permission { get; private set; }
         public ISystemConfigureRepository SystemConfigure { get; private set; }
+        public IGroupDocTypePermissionRepository GroupDocTypePermission { get; private set; }
+        public IDocumentTypeRepository DocumentType { get; private set; }
         public async Task DisposeAsync()
         {
             await _dbContext.DisposeAsync();

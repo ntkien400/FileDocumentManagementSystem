@@ -1,20 +1,10 @@
 ﻿using AutoMapper;
 using FileDocument.DataAccess.IRepository;
-using FileDocument.DataAccess.Repository;
 using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Runtime.CompilerServices;
-using System.Security.Claims;
-using System.Text;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace FileDocumentManagementSystem.Controllers
 {

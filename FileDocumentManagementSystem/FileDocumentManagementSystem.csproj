@@ -23,4 +23,8 @@
     <ProjectReference Include="..\FileDocument.Models\FileDocument.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Logo\" />
+  </ItemGroup>
+
 </Project>

@@ -25,7 +25,7 @@ namespace FileDocument.DataAccess
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Group> Groups { get; set; }
-        public DbSet<GroupDocPermission> GroupDocPermissions { get; set; }
+        public DbSet<GroupDocTypePermission> GroupDocTypePermissions { get; set; }
         public DbSet<GroupMember> GroupMember { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<SystemConfigure> SystemConfigures { get; set; }
