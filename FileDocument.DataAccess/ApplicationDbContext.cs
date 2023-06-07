@@ -14,6 +14,18 @@ namespace FileDocument.DataAccess
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<GroupMember>().HasKey(gu => new { gu.UserId, gu.GroupId });
+
+           // builder.Entity<Flight>()
+           //.HasOne(t => t.Airport1)
+           //.WithMany()
+           //.HasForeignKey(t => t.SourceAirporttId)
+           //.OnDelete(DeleteBehavior.Restrict);
+
+           // builder.Entity<Flight>()
+           //     .HasOne(t => t.Airport2)
+           //     .WithMany()
+           //     .HasForeignKey(t => t.DestinationAirporttId)
+           //     .OnDelete(DeleteBehavior.Restrict);
             base.OnModelCreating(builder);
         }
         public DbSet<Address> Addresses { get; set; }

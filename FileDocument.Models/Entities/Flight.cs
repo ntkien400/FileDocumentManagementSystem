@@ -22,15 +22,16 @@ namespace FileDocument.Models.Entities
         [DataType(DataType.Time)]
         public TimeSpan ArrivalTime { get; set; }
         [Required]
-        public string SourceAircraftId { get; set; }
-        [ForeignKey("SourceAircraftId")]
+        public string SourceAirporttId { get; set; }
+        [ForeignKey("SourceAirporttId")]
+        public Airport Airport1 { get; set; }
         [Required]
-        public string DestinationAircraftId { get; set; }
-        [ForeignKey("DestinationAircraftId")]
+        public string DestinationAirporttId { get; set; }
+        [ForeignKey("DestinationAirporttId")]
+        public Airport Airport2 { get; set; }
+        [Required]
+        public string AircraftId { get; set; }
+        [ForeignKey("AircraftId")]
         public Aircraft Aircraft { get; set; }
-        [Required]
-        public string AirportId { get; set; }
-        [ForeignKey("AirportId")]
-        public Airport Airport { get; set; }
     }
 }

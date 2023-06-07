@@ -52,8 +52,23 @@ namespace FileDocumentManagementSystem.Controllers
                 return BadRequest("Document type name already exists");
             }
 
+            var lastDocType = await _unit.DocumentType.GetLastDocumentType();
+
+            int newNumber;
+            if (lastDocType != null)
+            {
+                var currentNumber = int.Parse(lastDocType.Id.Split('-')[1]);
+                newNumber = currentNumber + 1;
+            }
+            else
+            {
+                newNumber = 1;
+            }
+
+            var newDocTypeId = $"TYPE-{newNumber:D2}"; 
             DocumentType documentType = new DocumentType
             {
+                Id = newDocTypeId,
                 Name = typeName,
                 DateCreated = DateTime.Now,
                 DateUpdated = DateTime.Now

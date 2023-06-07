@@ -76,32 +76,29 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-group-document-type-permission")]
-        public async Task<ActionResult<GroupDocTypePermission>> UpdateGroupDocumentTypePermission(GroupDocTypePermission groupDocTypePermission)
+        public async Task<ActionResult<GroupDocTypePermission>> UpdateGroupDocumentTypePermission(int id, string groupId, string documentTypeId, int permissionId)
         {
-            var group = await _unit.Group.GetAsync(g => g.Id == groupDocTypePermission.GroupId);
-            var docType = await _unit.DocumentType.GetAsync(d => d.Id == groupDocTypePermission.DocumentTypeId);
-            var permission = await _unit.Permission.GetAsync(p => p.Id == groupDocTypePermission.PermissionId);
-
-            if (group == null || docType == null || permission == null)
+            var group = await _unit.Group.GetAsync(g => g.Id == groupId);
+            var docType = await _unit.DocumentType.GetAsync(d => d.Id == documentTypeId);
+            var permission = await _unit.Permission.GetAsync(p => p.Id == permissionId);
+            var groupDocTypePermission = await _unit.GroupDocTypePermission.GetAsync(gd => gd.Id == id);
+            if (group == null || docType == null || permission == null || groupDocTypePermission == null)
             {
                 return NotFound("Id does not exists");
             }
 
-            var newGroupDocTypePermssion = new GroupDocTypePermission
-            {
-                GroupId = groupDocTypePermission.GroupId,
-                DocumentTypeId = groupDocTypePermission.DocumentTypeId,
-                PermissionId = groupDocTypePermission.PermissionId
-            };
+            groupDocTypePermission.GroupId = groupId;
+            groupDocTypePermission.DocumentTypeId = documentTypeId;
+            groupDocTypePermission.PermissionId = permissionId;
 
-            _unit.GroupDocTypePermission.Update(newGroupDocTypePermssion);
+            _unit.GroupDocTypePermission.Update(groupDocTypePermission);
             var count = await _unit.SaveChangesAsync();
             if(count > 0)
             {
                 return Ok(new
                 {
                     Message = "Success",
-                    Data = newGroupDocTypePermssion
+                    Data = groupDocTypePermission
                 });
             }
 

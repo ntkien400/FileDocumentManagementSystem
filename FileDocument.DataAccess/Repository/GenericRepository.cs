@@ -32,7 +32,7 @@ namespace FileDocument.DataAccess.Repository
 
         public void Update(T entity)
         {
-            dbSet.Attach(entity);
+            dbSet.Update(entity);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter = null

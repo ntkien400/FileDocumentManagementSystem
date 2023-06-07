@@ -1,5 +1,6 @@
 ﻿using FileDocument.DataAccess.IRepository;
 using FileDocument.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileDocument.DataAccess.Repository
 {
@@ -10,6 +11,11 @@ namespace FileDocument.DataAccess.Repository
         public DocumentTypeRepository(ApplicationDbContext dbContext) : base(dbContext) 
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<DocumentType> GetLastDocumentType()
+        {
+            return await _dbContext.DocumentTypes.OrderByDescending(x => x.Id).FirstOrDefaultAsync();
         }
     }
 }

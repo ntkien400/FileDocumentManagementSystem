@@ -13,6 +13,9 @@ namespace FileDocument.DataAccess.UnitOfWork
         ISystemConfigureRepository SystemConfigure { get; }
         IGroupDocTypePermissionRepository GroupDocTypePermission { get; }
         IDocumentTypeRepository DocumentType { get; }
+        IAircraftRepository Aircraft { get; }
+        IAirportRepository Airport { get; }
+        IFlightRepository Flight { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }

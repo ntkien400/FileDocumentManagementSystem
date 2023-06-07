@@ -18,6 +18,9 @@ namespace FileDocument.DataAccess.UnitOfWork
             SystemConfigure = new SystemConfigureRepository(_dbContext);
             GroupDocTypePermission = new GroupDocTypePermissionRepository(_dbContext);
             DocumentType = new DocumentTypeRepository(_dbContext);
+            Aircraft = new AircraftRepository(_dbContext);
+            Airport = new AirportRepository(_dbContext);
+            Flight = new FlightRepository(_dbContext);
         }
 
         public IAddressRepository Address { get; private set; }
@@ -29,6 +32,9 @@ namespace FileDocument.DataAccess.UnitOfWork
         public ISystemConfigureRepository SystemConfigure { get; private set; }
         public IGroupDocTypePermissionRepository GroupDocTypePermission { get; private set; }
         public IDocumentTypeRepository DocumentType { get; private set; }
+        public IAircraftRepository Aircraft { get; private set; }
+        public IAirportRepository Airport { get; private set; }
+        public IFlightRepository Flight { get; private set; }
         public async Task DisposeAsync()
         {
             await _dbContext.DisposeAsync();
