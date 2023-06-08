@@ -1,5 +1,6 @@
 ﻿using FileDocument.DataAccess.IRepository;
 using FileDocument.DataAccess.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileDocument.DataAccess.UnitOfWork
 {
@@ -21,6 +22,7 @@ namespace FileDocument.DataAccess.UnitOfWork
             Aircraft = new AircraftRepository(_dbContext);
             Airport = new AirportRepository(_dbContext);
             Flight = new FlightRepository(_dbContext);
+            Document = new DocumentRepository(_dbContext);
         }
 
         public IAddressRepository Address { get; private set; }
@@ -35,15 +37,36 @@ namespace FileDocument.DataAccess.UnitOfWork
         public IAircraftRepository Aircraft { get; private set; }
         public IAirportRepository Airport { get; private set; }
         public IFlightRepository Flight { get; private set; }
+        public IDocumentRepository Document { get; private set; }
         public async Task DisposeAsync()
         {
             await _dbContext.DisposeAsync();
         }
 
+        //public async Task<int> SaveChangesAsync()
+        //{
+        //    var count = await _dbContext.SaveChangesAsync();
+        //    return count;
+        //}
+
         public async Task<int> SaveChangesAsync()
         {
+            foreach (var entry in _dbContext.ChangeTracker.Entries())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    // Get the original values of the entity
+                    var originalValues = await entry.GetDatabaseValuesAsync();
+
+                    // Update only the modified properties
+                    entry.CurrentValues.SetValues(entry.Entity);
+                    entry.OriginalValues.SetValues(originalValues);
+                }
+            }
+
             var count = await _dbContext.SaveChangesAsync();
             return count;
         }
+
     }
 }

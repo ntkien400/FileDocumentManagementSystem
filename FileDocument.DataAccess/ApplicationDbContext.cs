@@ -33,7 +33,6 @@ namespace FileDocument.DataAccess
         public DbSet<Airport> Airports { get; set; }
         public DbSet<User> ApplicationUsers { get; set; }
         public DbSet<Document> Documents { get; set; }
-        public DbSet<DocumentRevision> DocumentRevisions { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Group> Groups { get; set; }

@@ -111,5 +111,28 @@ namespace FileDocumentManagementSystem.Controllers
 
             return BadRequest("Something went wrong when upadating");
         }
+
+        [HttpDelete("delete-flight")]
+        public async Task<ActionResult<Flight>> DeleteFlight(string flightId)
+        {
+            var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
+            if (flight == null)
+            {
+                return NotFound("Id does not exists");
+            }
+
+            _unit.Flight.Delete(flight);
+            var count = await _unit.SaveChangesAsync();
+
+            if (count > 0)
+            {
+                return Ok(new
+                {
+                    Message = "Success"
+                });
+            }
+
+            return BadRequest("Something went wrong when deleting");
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace FileDocument.DataAccess.UnitOfWork
         IAircraftRepository Aircraft { get; }
         IAirportRepository Airport { get; }
         IFlightRepository Flight { get; }
+        IDocumentRepository Document { get; }
         Task DisposeAsync();
         Task<int> SaveChangesAsync();
     }
