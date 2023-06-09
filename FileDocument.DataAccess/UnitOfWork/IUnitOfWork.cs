@@ -8,7 +8,7 @@ namespace FileDocument.DataAccess.UnitOfWork
         IUserRepository User { get; }
         IAuthRepository Authenticate { get; }
         IGroupRepository Group { get; }
-        IGroupMemberRepository GroupUser { get; }
+        IGroupMemberRepository GroupMember { get; }
         IPermissionRepoitory Permission { get; }
         ISystemConfigureRepository SystemConfigure { get; }
         IGroupDocTypePermissionRepository GroupDocTypePermission { get; }

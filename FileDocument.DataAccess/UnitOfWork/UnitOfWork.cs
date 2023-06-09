@@ -14,7 +14,7 @@ namespace FileDocument.DataAccess.UnitOfWork
             User = new UserRepository(_dbContext);
             Authenticate = new AuthRepository(_dbContext);
             Group = new GroupRepository(_dbContext);
-            GroupUser = new GroupMemberRepository(_dbContext);
+            GroupMember = new GroupMemberRepository(_dbContext);
             Permission = new PermissionRepository(_dbContext);
             SystemConfigure = new SystemConfigureRepository(_dbContext);
             GroupDocTypePermission = new GroupDocTypePermissionRepository(_dbContext);
@@ -29,7 +29,7 @@ namespace FileDocument.DataAccess.UnitOfWork
         public IUserRepository User { get; private set; }
         public IAuthRepository Authenticate { get; private set; }
         public IGroupRepository Group { get; private set; }
-        public IGroupMemberRepository GroupUser { get; private set; }
+        public IGroupMemberRepository GroupMember { get; private set; }
         public IPermissionRepoitory Permission { get; private set; }
         public ISystemConfigureRepository SystemConfigure { get; private set; }
         public IGroupDocTypePermissionRepository GroupDocTypePermission { get; private set; }

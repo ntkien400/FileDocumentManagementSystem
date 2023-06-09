@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace FileDocument.DataAccess.Repository
 {
+
     public class DocumentRepository : GenericRepository<Document>, IDocumentRepository
     {
         private readonly ApplicationDbContext _dbContext;
@@ -12,6 +13,12 @@ namespace FileDocument.DataAccess.Repository
         public DocumentRepository(ApplicationDbContext dbContext) : base(dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<Document> CheckDocumentNameExistsInFlight(string fileName, string flightId)
+        {
+            var document = await _dbContext.Documents.Where(x => x.Equals(fileName) && x.FlightId == flightId).OrderByDescending(d => d.DateCreated).FirstOrDefaultAsync();
+            return document;
         }
 
         public async Task<IEnumerable<Document>> FilterDocuments(string? flightId, string? createdDate, string? typeDocumentId)

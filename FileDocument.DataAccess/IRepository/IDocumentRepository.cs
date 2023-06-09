@@ -5,5 +5,6 @@ namespace FileDocument.DataAccess.IRepository
     public interface IDocumentRepository : IGenericRepository<Document>
     {
         Task<IEnumerable<Document>> FilterDocuments(string? flightId, string? departureDate, string? typeDocumentId);
+        Task<Document> CheckDocumentNameExistsInFlight(string fileName, string flightId);
     }
 }

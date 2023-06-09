@@ -8,12 +8,12 @@ namespace FileDocumentManagementSystem.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GroupUserController : ControllerBase
+    public class GroupMemberController : ControllerBase
     {
         private readonly IUnitOfWork _unit;
         private readonly UserManager<User> _userManager;
 
-        public GroupUserController(IUnitOfWork unit, UserManager<User> userManager)
+        public GroupMemberController(IUnitOfWork unit, UserManager<User> userManager)
         {
             _unit = unit;
             _userManager = userManager;
@@ -22,7 +22,7 @@ namespace FileDocumentManagementSystem.Controllers
         [HttpGet("get-members-by-group")]
         public async Task<ActionResult> GetMembersByGroup(string groupId)
         {
-            var membersGroup = await _unit.GroupUser.GetAllAsync(m => m.GroupId == groupId);
+            var membersGroup = await _unit.GroupMember.GetAllAsync(m => m.GroupId == groupId);
             if(membersGroup == null)
             {
                 return NotFound();
@@ -58,7 +58,7 @@ namespace FileDocumentManagementSystem.Controllers
                 GroupId = group.Id
             };
 
-            await _unit.GroupUser.AddAsync(groupUser);
+            await _unit.GroupMember.AddAsync(groupUser);
             var count = await _unit.SaveChangesAsync();
             if(count > 0)
             {
@@ -74,13 +74,13 @@ namespace FileDocumentManagementSystem.Controllers
         [HttpDelete("delete-member")]
         public async Task<ActionResult> DeleteMember(string userId)
         {
-            var member = await _unit.GroupUser.GetAsync(m => m.UserId == userId);
+            var member = await _unit.GroupMember.GetAsync(m => m.UserId == userId);
             if(member == null)
             {
                 return NotFound("User does not exists");
             }
 
-            _unit.GroupUser.Delete(member);
+            _unit.GroupMember.Delete(member);
             var count = await _unit.SaveChangesAsync();
             if(count > 0)
             {
