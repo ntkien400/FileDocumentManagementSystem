@@ -18,6 +18,9 @@ namespace FileDocument.Models.Entities
         public string Url { get; set; }
         public string Version { get; set; }
         public DateTime DateCreated { get; set; }
+        public DateTime DateUpdate { get; set; }
+        public bool Report { get; set; } = false;
+        public string? SignatureUrl { get; set; }
         public string UserId { get; set; }
         [ForeignKey("UserId")]
         public User User { get; set; }

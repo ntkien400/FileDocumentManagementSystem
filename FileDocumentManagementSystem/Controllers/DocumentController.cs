@@ -38,7 +38,7 @@ namespace FileDocumentManagementSystem.Controllers
         public async Task<ActionResult<IEnumerable<Document>>> FilterDocument(string? flightId, string? departureDate, string? typeDocumentId)
         {
             var listDocument = await _unit.Document.FilterDocuments(flightId, departureDate, typeDocumentId);
-            if(listDocument == null)
+            if(listDocument.Count() == 0)
             {
                 return NotFound("Not found any document");
             }
@@ -56,7 +56,7 @@ namespace FileDocumentManagementSystem.Controllers
             if(searchRequest != null)
             {
                 var listDocument = await _unit.Document.GetAllAsync(d => d.FlightId == searchRequest);
-                if(listDocument != null)
+                if(listDocument.Count() > 0)
                 {
                     return Ok(new
                     {
@@ -66,7 +66,7 @@ namespace FileDocumentManagementSystem.Controllers
                 }
 
                 listDocument = await _unit.Document.GetAllAsync(d => d.Name == searchRequest);
-                if(listDocument != null)
+                if(listDocument.Count() > 0)
                 {
                     return Ok(new
                     {
@@ -85,24 +85,22 @@ namespace FileDocumentManagementSystem.Controllers
         public async Task<ActionResult<Document>> InsertDocumentToFlight(IFormFile file, string flightId, string docTypeId )
         {
             const decimal version = 1;
-            if(file == null || flightId == null || docTypeId == null)
+            if(file != null && flightId != null && docTypeId != null)
             {
                 var userId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier).Value;
-                if (userId == null)
-                {
-                    return StatusCode(500, "Something wrong when get userId");
-                }
+                var fileName = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + version.ToString("0.0") + Path.GetExtension(file.FileName);
+                var documentUploadUrl = await UploadFile(fileName, flightId);
+                var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
 
-                var documentUploadUrl = await UploadFile(file.FileName, flightId);
-                if (documentUploadUrl != null)
+                if (documentUploadUrl != null && flight != null && !flight.FlightEnd)
                 {
                     Document newDocument = new Document
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Name = file.Name,
+                        Name = file.FileName,
                         Version = version.ToString("0.0"),
                         Url = documentUploadUrl,
-                        DateCreated = DateTime.Now.Date,
+                        DateCreated = DateTime.Now,
                         UserId = userId,
                         DocumentTypeId = docTypeId,
                         FlightId = flightId
@@ -128,20 +126,22 @@ namespace FileDocumentManagementSystem.Controllers
             
         }
 
-        [HttpPost("update-document")]
-        public async Task<ActionResult> UpdateDocument(IFormFile file, string flightId, string typeDocId)
+        [HttpPost("updload-document")]
+        public async Task<ActionResult> UpdloadDocument(IFormFile file, string flightId, string typeDocId)
         {
-            double version =1;
-            if(file != null && flightId != null)
+            double version = 1;
+            var userId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier).Value;
+            var userPermission = await _unit.Document.GetUserPermission(userId, typeDocId);
+
+            if (file != null && flightId != null && userPermission == 1)
             {
-                var userId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier).Value;
-                var fileName = file.FileName + "_" + version.ToString("0.0");
+                var fileName = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + version.ToString("0.0") + Path.GetExtension(file.FileName);
                 var fileExists = await _unit.Document.CheckDocumentNameExistsInFlight(file.FileName, flightId);
                 
                 if (fileExists != null)
                 {
-                    version = int.Parse(fileExists.Version) + 0.1;
-                    fileName = file.FileName + "_" + fileExists.Version;
+                    version = double.Parse(fileExists.Version) + 0.1;
+                    fileName = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + version.ToString("0.0") + Path.GetExtension(file.FileName);
                 }
                
                 var documentUploadUrl = await UploadFile(fileName, flightId);
@@ -150,10 +150,10 @@ namespace FileDocumentManagementSystem.Controllers
                     Document newDocument = new Document
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Name = file.Name,
+                        Name = file.FileName,
                         Version = version.ToString("0.0"),
                         Url = documentUploadUrl,
-                        DateCreated = DateTime.Now.Date,
+                        DateCreated = DateTime.Now,
                         UserId = userId,
                         DocumentTypeId = typeDocId,
                         FlightId = flightId
@@ -175,14 +175,122 @@ namespace FileDocumentManagementSystem.Controllers
                 return BadRequest("Error when uploading to cloud");
             }
 
-            return BadRequest("Some field is not fill");
+            return BadRequest("All field are not fill or you don't have permission to update");
         }
 
-        private async Task<int> UserPermission(string userId)
+        [HttpPut("update-document")]
+        public async Task<ActionResult> UpdateDocument(IFormFile file, string documentId, string typeDocId, string flightId)
         {
-            var userMember = await _unit.GroupMember.GetAsync(u => u.UserId == userId);
-            var groupPermission = await _unit.GroupDocTypePermission.GetAsync(gp => gp.GroupId == userMember.GroupId);
-            return groupPermission.PermissionId;
+            if (file != null && documentId != null && typeDocId != null)
+            {
+                var document = await _unit.Document.GetAsync(d => d.Id == documentId);
+                var typeDoc = await _unit.DocumentType.GetAsync(td => td.Id == typeDocId);
+                var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
+                var fileName = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + document.Version + Path.GetExtension(file.FileName);
+                if (document != null && typeDoc != null && flight != null && !flight.FlightEnd)
+                {
+                    var deleteResult = await DeleteFile(document.Name, flightId);
+                    if(deleteResult)
+                    {
+                        var documentUrl = await UploadFile(file.FileName, flightId);
+                        document.Url = documentUrl;
+                        document.DocumentTypeId = typeDocId;
+                        document.FlightId = flightId;
+                        document.DateUpdate = DateTime.Now;
+
+                        _unit.Document.Update(document);
+                        var count = await _unit.SaveChangesAsync();
+
+                        if(count > 0)
+                        {
+                            return Ok(new { Message = "Success", Data = document });
+                        }
+
+                        return BadRequest("Something went wrong when updating");
+                    }
+
+                    return BadRequest("Error when delete document in cloud");
+                }
+
+                return BadRequest("Id does not exists");
+            }
+
+            return BadRequest("All field is not fill");
+        }
+
+        [HttpPost("report-document")]
+        public async Task<ActionResult> ReportDocument(string flightId, IFormFile file)
+        {
+            var listDocByFlight = await _unit.Document.FilterDocuments(flightId);
+            var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
+            if (listDocByFlight.Any() && file != null && !flight.FlightEnd)
+            {
+                var signatureUploadUrl = await UploadFile(flightId, file.FileName); 
+                foreach(var document in listDocByFlight)
+                {
+                    document.Report = true;
+                    document.SignatureUrl = signatureUploadUrl;
+                    _unit.Document.Update(document);
+                    await _unit.SaveChangesAsync();
+                }
+
+                return Ok(new { Message = "Report successfully" });
+            }
+
+            return BadRequest("Failed to report");
+        }
+
+        [HttpDelete("delete-document")]
+        public async Task<ActionResult> DeleteDocument(string documentId)
+        {
+            var document = await _unit.Document.GetAsync(d => d.Id == documentId);
+            var userId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier);
+            if(document != null && !document.Report)
+            {
+                _unit.Document.Delete(document);
+                var count = await _unit.SaveChangesAsync();
+                if(count > 0)
+                {
+                    return Ok(new { Message = "Success" });
+                }
+
+                return BadRequest("Something went wrong when deleting");
+            }
+
+            return BadRequest("Can't not delete because wrong document Id or document was reported");
+        }
+
+        [HttpGet("get-user-permission")]
+        public async Task<ActionResult> GetUserPermission(string userId, string docTypeId)
+        {
+            var userPermission = await _unit.Document.GetUserPermission(userId, docTypeId);
+            if(userPermission != 0)
+            {
+                return Ok(new
+                {
+                    Message = "Success",
+                    Data = userPermission
+                });
+            }
+
+            return BadRequest("User Id is not exists");
+        }
+
+        [HttpGet("download-file")]
+        public async Task DownloadFile(string filePath)
+        {
+            var accessToken = _configuration["DropBox:AccessToken"];
+            var client = new DropboxClient(accessToken);
+            var savePath = "C:\\Users\\ntkie\\Downloads\\Documents\\New folder";
+
+            using (var response = await client.Files.DownloadAsync(filePath))
+            {
+                using (var fileStream = System.IO.File.Create(savePath))
+                {
+                    var contentStream = await response.GetContentAsStreamAsync();
+                    contentStream.CopyTo(fileStream);
+                }
+            }
         }
         private async Task<string> UploadFile(string fileName, string flightId) 
         {
@@ -201,21 +309,23 @@ namespace FileDocumentManagementSystem.Controllers
                 return null;
             }
         }
-
-        private async Task DownloadFile(string filePath)
+        private async Task<bool> DeleteFile(string fileName, string flightId)
         {
             var accessToken = _configuration["DropBox:AccessToken"];
             var client = new DropboxClient(accessToken);
-            var savePath = "C:\\Users\\ntkie\\OneDrive\\Desktop\\DownloadFile";
+            var filePath = "/" + flightId + "/" + fileName;
 
-            using (var response = await client.Files.DownloadAsync(filePath))
+            using (var mem = new MemoryStream())
             {
-                using (var fileStream = System.IO.File.Create(savePath))
+                var upload = await client.Files.DeleteV2Async(filePath);
+                var metadata = await client.Files.GetMetadataAsync(filePath);
+                if (metadata.IsFile)
                 {
-                    var contentStream = await response.GetContentAsStreamAsync();
-                    contentStream.CopyTo(fileStream);
+                    return false;
                 }
+                return true;
             }
         }
+        
     }
 }

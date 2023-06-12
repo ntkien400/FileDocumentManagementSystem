@@ -4,6 +4,7 @@ using FileDocument.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FileDocument.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230612022326_AddReportFeildToDocumentTable")]
+    partial class AddReportFeildToDocumentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,9 +121,6 @@ namespace FileDocument.DataAccess.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DateUpdate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("DocumentTypeId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -207,9 +206,6 @@ namespace FileDocument.DataAccess.Migrations
                     b.Property<string>("DestinationAirporttId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<bool>("FlightEnd")
-                        .HasColumnType("bit");
 
                     b.Property<string>("SourceAirporttId")
                         .IsRequired()

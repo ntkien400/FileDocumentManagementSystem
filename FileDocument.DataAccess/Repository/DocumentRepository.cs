@@ -15,9 +15,25 @@ namespace FileDocument.DataAccess.Repository
             _dbContext = dbContext;
         }
 
+        public async Task<int> GetUserPermission(string userId, string docTypeId)
+        {
+            var userMember = await _dbContext.GroupMember.FirstOrDefaultAsync(gm => gm.UserId == userId);
+            if (userMember != null)
+            {
+                var groupPermission = await _dbContext.GroupDocTypePermissions.FirstOrDefaultAsync(gp => gp.GroupId == userMember.GroupId && gp.DocumentTypeId == docTypeId);
+                if(groupPermission == null)
+                {
+                    return 0;
+                }
+
+                return groupPermission.PermissionId;
+            }
+
+            return 0;
+        }
         public async Task<Document> CheckDocumentNameExistsInFlight(string fileName, string flightId)
         {
-            var document = await _dbContext.Documents.Where(x => x.Equals(fileName) && x.FlightId == flightId).OrderByDescending(d => d.DateCreated).FirstOrDefaultAsync();
+            var document = await _dbContext.Documents.Where(x => x.Name == fileName && x.FlightId == flightId).OrderByDescending(d => d.DateCreated).FirstOrDefaultAsync();
             return document;
         }
 
