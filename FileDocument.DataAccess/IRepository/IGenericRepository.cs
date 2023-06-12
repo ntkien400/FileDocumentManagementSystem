@@ -11,7 +11,8 @@ namespace FileDocument.DataAccess.IRepository
             , string properties = null);
         void Add(T entity);
         Task AddAsync(T entity);
-        void Update(T entity);  
+        void Update(T entity); 
+        void UpdateRange(IEnumerable<T> entities);
         void Delete(T entity);  
     }
 }

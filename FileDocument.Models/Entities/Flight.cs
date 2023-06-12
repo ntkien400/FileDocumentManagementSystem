@@ -21,6 +21,7 @@ namespace FileDocument.Models.Entities
         [Required]
         [DataType(DataType.Time)]
         public TimeSpan ArrivalTime { get; set; }
+        public bool IsDocumentReported { get; set; } = false;
         public bool FlightEnd { get; set; } = false;
         [Required]
         public string SourceAirporttId { get; set; }

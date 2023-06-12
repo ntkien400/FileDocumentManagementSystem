@@ -35,6 +35,10 @@ namespace FileDocument.DataAccess.Repository
             dbSet.Update(entity);
         }
 
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            dbSet.UpdateRange(entities);
+        }
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter = null
             , Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null
             , string properties = null)
