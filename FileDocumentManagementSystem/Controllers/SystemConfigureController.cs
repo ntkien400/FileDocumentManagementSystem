@@ -2,7 +2,10 @@
 using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Security.Claims;
 
 namespace FileDocumentManagementSystem.Controllers
@@ -13,6 +16,7 @@ namespace FileDocumentManagementSystem.Controllers
     {
         private readonly IUnitOfWork _unit;
         private readonly IMapper _mapper;
+
         public SystemConfigureController(IUnitOfWork unit, IMapper mapper)
         {
             _unit = unit;
@@ -20,17 +24,20 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-system-config")]
-        public async Task<ActionResult<IEnumerable<SystemConfigure>>> GetAllSystemConfigure()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<SystemConfigure>>> GetAllSystemConfigure(int? pageIndex)
         {
             var listConfig = await _unit.SystemConfigure.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listConfig, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listConfig
+                Data = paginationResult
             });
         }
 
         [HttpGet("get-system-config-by-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<SystemConfigure>> GetSystemConfigureByUser(string userId)
         {
            var user = await _unit.User.GetAsync(u => u.Id == userId);
@@ -54,6 +61,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-config")]
+        [Authorize]
         public async Task<ActionResult> InsertConfigure([FromForm]SystemConfigureDto systemConfigDto)
         {
             var systemConfig = new SystemConfigure();
@@ -92,9 +100,11 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-system-config")]
-        public async Task<ActionResult> UpdateSystemConfig(int id, [FromForm]SystemConfigureDto systemConfigDto)
+        [Authorize]
+        public async Task<ActionResult> UpdateSystemConfig([FromForm]SystemConfigureDto systemConfigDto)
         {
-            var systemConfig = await _unit.SystemConfigure.GetAsync(s => s.Id == id);
+            var userId = HttpContext.User.Claims.First(u => u.Type == ClaimTypes.NameIdentifier).Value;
+            var systemConfig = await _unit.SystemConfigure.GetAsync(s => s.UserId == userId);
             if(systemConfig == null)
             {
                 return NotFound("Id does not exists");
@@ -117,6 +127,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-system-config")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeleteSystemConfigure(int id)
         {
             var systemConfig = await _unit.SystemConfigure.GetAsync(s => s.Id == id);

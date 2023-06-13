@@ -32,12 +32,12 @@ namespace FileDocument.DataAccess.Repository
 
         public void Update(T entity)
         {
-            dbSet.Update(entity);
+            dbSet.Attach(entity);
         }
 
         public void UpdateRange(IEnumerable<T> entities)
         {
-            dbSet.UpdateRange(entities);
+            dbSet.AttachRange(entities);
         }
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> filter = null
             , Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null

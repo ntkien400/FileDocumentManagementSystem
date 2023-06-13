@@ -10,7 +10,7 @@ namespace FileDocument.DataAccess.Repository
         {
             var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
             var client = new SendGridClient(apiKey);
-            var from = new EmailAddress("ntkien400@gmail.com", "FestivalHue");
+            var from = new EmailAddress("ntkien400@gmail.com", "AdminSystemFlightDocument");
             var subject = "Mã khôi phục mật khẩu";
             var to = new EmailAddress(email, "User");
             var plainTextContent = "Success";

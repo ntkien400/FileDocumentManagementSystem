@@ -2,8 +2,13 @@
 using Dropbox.Api;
 using Dropbox.Api.Files;
 using FileDocument.DataAccess.UnitOfWork;
+using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Packaging.Signing;
+using System;
 using System.Security.Claims;
 
 namespace FileDocumentManagementSystem.Controllers
@@ -13,30 +18,34 @@ namespace FileDocumentManagementSystem.Controllers
     public class DocumentController : ControllerBase
     {
         private readonly IUnitOfWork _unit;
-        private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
-        public DocumentController(IUnitOfWork unit, IMapper mapper, IConfiguration configuration)
+        private const string AllowedRoles = StaticUserRoles.Admin + "," + StaticUserRoles.GO + "," + StaticUserRoles.Pilot + "," + StaticUserRoles.Crew;
+
+        public DocumentController(IUnitOfWork unit, IConfiguration configuration)
         {
             _unit = unit;
-            _mapper = mapper;
             _configuration = configuration;
         }
 
         [HttpGet("get-all-document")]
-        public async Task<ActionResult<IEnumerable<Document>>> GetAllDocument()
+        [Authorize(Roles = StaticUserRoles.Admin + "," + StaticUserRoles.GO)]
+        public async Task<ActionResult<IEnumerable<Document>>> GetAllDocument(int? pageIndex)
         {
             var listDocument = await _unit.Document.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listDocument, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listDocument
+                Data = paginationResult
             });
         }
 
         [HttpGet("filter-document")]
-        public async Task<ActionResult<IEnumerable<Document>>> FilterDocument(string? flightId, string? departureDate, string? typeDocumentId)
+        [Authorize(Roles = StaticUserRoles.Admin + "," + StaticUserRoles.GO)]
+        public async Task<ActionResult<IEnumerable<Document>>> FilterDocument(string? flightId, string? departureDate, string? typeDocumentId, int? pageIndex)
         {
             var listDocument = await _unit.Document.FilterDocuments(flightId, departureDate, typeDocumentId);
+            var paginationResult = PaginationHelper.Paginate(listDocument, pageIndex);
             if (listDocument.Count() == 0)
             {
                 return NotFound("Not found any document");
@@ -45,32 +54,35 @@ namespace FileDocumentManagementSystem.Controllers
             return Ok(new
             {
                 Message = "Success",
-                Data = listDocument
+                Data = paginationResult
             });
         }
 
         [HttpGet("search-document")]
-        public async Task<ActionResult<IEnumerable<Document>>> SearchDocument(string searchRequest)
+        [Authorize(Roles = StaticUserRoles.Admin + "," + StaticUserRoles.GO)]
+        public async Task<ActionResult<IEnumerable<Document>>> SearchDocument(string searchRequest, int? pageIndex)
         {
             if (searchRequest != null)
             {
                 var listDocument = await _unit.Document.GetAllAsync(d => d.FlightId == searchRequest);
+                var paginationResult = PaginationHelper.Paginate(listDocument, pageIndex);
                 if (listDocument.Count() > 0)
                 {
                     return Ok(new
                     {
                         Message = "Success",
-                        Data = listDocument
+                        Data = paginationResult
                     });
                 }
 
                 listDocument = await _unit.Document.GetAllAsync(d => d.Name == searchRequest);
+                paginationResult = PaginationHelper.Paginate(listDocument, pageIndex);
                 if (listDocument.Count() > 0)
                 {
                     return Ok(new
                     {
                         Message = "Success",
-                        Data = listDocument
+                        Data = paginationResult
                     });
                 }
 
@@ -81,6 +93,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-document-to-flight")]
+        [Authorize(Roles = StaticUserRoles.Admin + "," + StaticUserRoles.GO)]
         public async Task<ActionResult<Document>> InsertDocumentToFlight(IFormFile file, string flightId, string docTypeId)
         {
             const decimal version = 1;
@@ -126,6 +139,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("updload-document")]
+        [Authorize(Roles = StaticUserRoles.Pilot + "," + StaticUserRoles.Crew)]
         public async Task<ActionResult> UpdloadDocument(IFormFile file, string flightId, string typeDocId)
         {
             if (file == null || flightId == null || typeDocId == null)
@@ -188,6 +202,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-document")]
+        [Authorize(Roles = StaticUserRoles.Admin + "," + StaticUserRoles.GO)]
         public async Task<ActionResult> UpdateDocument(IFormFile file, string documentId, string typeDocId, string flightId)
         {
             if (file == null || documentId == null || typeDocId == null)
@@ -204,33 +219,35 @@ namespace FileDocumentManagementSystem.Controllers
                 return BadRequest("Id does not exist or flight has ended");
             }
 
-            var fileName = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + document.Version + Path.GetExtension(file.FileName);
-            var deleteResult = await DeleteFile(document.Name, flightId);
-
-            if (deleteResult)
+            var fileNameDelete = Path.GetFileNameWithoutExtension(document.Name) + "_ver" + document.Version + Path.GetExtension(document.Name);
+            var fileNameUpload = Path.GetFileNameWithoutExtension(file.FileName) + "_ver" + document.Version + Path.GetExtension(file.FileName);
+            var deleteResult = await DeleteFile(fileNameDelete, flightId);
+            
+            if(!deleteResult)
             {
-                var documentUrl = await UploadFile(file.FileName, flightId);
-                document.Url = documentUrl;
-                document.DocumentTypeId = typeDocId;
-                document.FlightId = flightId;
-                document.DateUpdate = DateTime.Now;
+                return BadRequest("Failed delete file in cloud");
+            }
+            var documentUrl = await UploadFile(fileNameUpload, flightId);
+            document.Name = file.FileName;
+            document.Url = documentUrl;
+            document.DocumentTypeId = typeDocId;
+            document.FlightId = flightId;
+            document.DateUpdate = DateTime.Now;
 
-                _unit.Document.Update(document);
-                var count = await _unit.SaveChangesAsync();
+            _unit.Document.Update(document);
+            var count = await _unit.SaveChangesAsync();
 
-                if (count > 0)
-                {
-                    return Ok(new { Message = "Success", Data = document });
-                }
-
-                return BadRequest("Something went wrong when updating");
+            if (count > 0)
+            {
+                return Ok(new { Message = "Success", Data = document });
             }
 
-            return BadRequest("Error when deleting document in the cloud");
+            return BadRequest("Something went wrong when updating");
 
         }
 
         [HttpPost("report-document")]
+        [Authorize(Roles = StaticUserRoles.Pilot)]
         public async Task<ActionResult> ReportDocument(string flightId, IFormFile file)
         {
             var listDocByFlight = await _unit.Document.FilterDocuments(flightId);
@@ -260,6 +277,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-document")]
+        [Authorize(Roles = AllowedRoles)]
         public async Task<ActionResult> DeleteDocument(string documentId, string flightId)
         {
             var document = await _unit.Document.GetAsync(d => d.Id == documentId);
@@ -268,20 +286,28 @@ namespace FileDocumentManagementSystem.Controllers
 
             if (document != null && document.UserId == userId && !flight.IsDocumentReported)
             {
-                _unit.Document.Delete(document);
-                var count = await _unit.SaveChangesAsync();
-                if (count > 0)
+                var fileName = Path.GetFileNameWithoutExtension(document.Name) + "_ver" + document.Version + Path.GetExtension(document.Name);
+                var deleteResult = await DeleteFile(fileName, flightId);
+                if(deleteResult)
                 {
-                    return Ok(new { Message = "Success" });
-                }
+                    _unit.Document.Delete(document);
+                    var count = await _unit.SaveChangesAsync();
+                    if (count > 0)
+                    {
+                        return Ok(new { Message = "Success" });
+                    }
 
-                return BadRequest("Something went wrong when deleting");
+                    return BadRequest("Something went wrong when deleting");
+                }
+                
+                return BadRequest("Failed to delete because can't delete file in cloud");
             }
 
             return BadRequest("Can't not delete because wrong document Id or document was reported");
         }
 
         [HttpGet("get-user-permission")]
+        [Authorize(Roles = AllowedRoles)]
         public async Task<ActionResult> GetUserPermission(string userId, string docTypeId)
         {
             var userPermission = await _unit.Document.GetUserPermission(userId, docTypeId);
@@ -298,19 +324,27 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("download-file")]
-        public async Task DownloadFile(string filePath)
+        [Authorize(Roles = AllowedRoles)]
+        public async Task<ActionResult> DownloadFile(string filePath)
         {
             var accessToken = _configuration["DropBox:AccessToken"];
             var client = new DropboxClient(accessToken);
-            var savePath = "C:\\Users\\ntkie\\Downloads\\Documents\\New folder";
+            var savePath = "C:/Users/ntkie/Downloads/Documents/New folder/";
 
             using (var response = await client.Files.DownloadAsync(filePath))
             {
-                using (var fileStream = System.IO.File.Create(savePath))
-                {
-                    var contentStream = await response.GetContentAsStreamAsync();
-                    contentStream.CopyTo(fileStream);
-                }
+                var fileContentStream = await response.GetContentAsStreamAsync();
+               if (response != null && fileContentStream != null)
+               {
+                    var fileName = response.Response.Name;
+                    using (var fileStream = System.IO.File.Create(savePath + fileName))
+                    {
+                        fileContentStream.CopyTo(fileStream);
+                        return Ok(new { Message = "Download success" });
+                    }
+               }
+
+                return BadRequest("Failed to download file");
             }
         }
         private async Task<string> UploadFile(string fileName, string flightId)
@@ -336,17 +370,15 @@ namespace FileDocumentManagementSystem.Controllers
             var client = new DropboxClient(accessToken);
             var filePath = "/" + flightId + "/" + fileName;
 
-            using (var mem = new MemoryStream())
+            try
             {
-                var upload = await client.Files.DeleteV2Async(filePath);
-                var metadata = await client.Files.GetMetadataAsync(filePath);
-                if (metadata.IsFile)
-                {
-                    return false;
-                }
+                await client.Files.DeleteV2Async(filePath);
                 return true;
             }
+            catch (ApiException<DeleteError> ex)
+            {
+                return false;
+            }
         }
-
     }
 }

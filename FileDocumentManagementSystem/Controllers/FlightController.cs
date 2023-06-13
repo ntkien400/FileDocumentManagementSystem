@@ -2,7 +2,10 @@
 using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -20,17 +23,20 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-flight")]
-        public async Task<ActionResult<IEnumerable<Flight>>> GetAllFlight()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<Flight>>> GetAllFlight(int? pageIndex)
         {
             var listFlight = await _unit.Flight.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listFlight, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listFlight
+                Data = paginationResult
             });
         }
 
         [HttpGet("get-flight-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<IEnumerable<Flight>>> GetFlightById(string flightId)
         {
             var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
@@ -47,6 +53,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-flight")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Flight>> InsertFlight([FromForm] FlightDto flightDto)
         {
             var checkFieldNull = flightDto.GetType()
@@ -88,6 +95,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-flight")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Flight>> UpdateFlight(string flightId,[FromForm] FlightDto flightDto)
         {
             var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);
@@ -113,6 +121,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-flight")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Flight>> DeleteFlight(string flightId)
         {
             var flight = await _unit.Flight.GetAsync(f => f.Id == flightId);

@@ -1,7 +1,10 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
+using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -17,6 +20,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-document-type")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<DocumentType>> GetAllDocumentType()
         {
             var listDocumentType = await _unit.DocumentType.GetAllAsync();
@@ -28,6 +32,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-document-type-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<DocumentType>> GetDocumentTypeById(string id)
         {
             var documentType = await _unit.DocumentType.GetAsync(d => d.Id == id);
@@ -44,6 +49,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-document-type")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<DocumentType>> InsertDocumentType(string typeName)
         {
             var isFileNameExists = await _unit.DocumentType.GetAsync(d => d.Name == typeName);
@@ -90,6 +96,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-document-type")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<DocumentType>> UpdateDocumentType(string id, string typeName)
         {
             var documentType = await _unit.DocumentType.GetAsync(d => d.Id == id);
@@ -116,6 +123,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-document-type")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeleteDocumentType(string id)
         {
             var documentType = await _unit.DocumentType.GetAsync(d => d.Id == id);

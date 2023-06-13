@@ -51,19 +51,6 @@ namespace FileDocument.DataAccess.UnitOfWork
 
         public async Task<int> SaveChangesAsync()
         {
-            foreach (var entry in _dbContext.ChangeTracker.Entries())
-            {
-                if (entry.State == EntityState.Modified)
-                {
-                    // Get the original values of the entity
-                    var originalValues = await entry.GetDatabaseValuesAsync();
-
-                    // Update only the modified properties
-                    entry.CurrentValues.SetValues(entry.Entity);
-                    entry.OriginalValues.SetValues(originalValues);
-                }
-            }
-
             var count = await _dbContext.SaveChangesAsync();
             return count;
         }

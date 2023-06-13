@@ -3,6 +3,8 @@ using FileDocument.DataAccess.IRepository;
 using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,16 +28,19 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get_all_user")]
-        public async Task<ActionResult<IEnumerable<User>>> GetAllUser()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<User>>> GetAllUser(int? pageIndex)
         {
             var listUser = await _unit.User.GetAllAsync();
-            return Ok(listUser);
+            var paginationResult = PaginationHelper.Paginate(listUser, pageIndex);
+            return Ok(paginationResult);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUserById(string id)
+        [HttpGet("get-user-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<User>> GetUserById(string userId)
         {
-            var user = await _unit.User.GetAsync(a => a.Id == id, properties:"Address");
+            var user = await _unit.User.GetAsync(a => a.Id == userId, properties:"Address");
             
             if (user != null)
             {
@@ -54,6 +59,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("create-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<RegisterDto>> CreateUser([FromForm] RegisterDto register)
         {
             var isExistEmail = await _userManager.FindByEmailAsync(register.Email);
@@ -104,13 +110,14 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> ForgotPassword(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var uriBuilder = new UriBuilder("https://localhost:7102/User/reset-password");
+                var uriBuilder = new UriBuilder("https://localhost:7102/api/User/reset-password");
                 var query = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
                 query["token"] = token;
                 query["email"] = email;
@@ -124,6 +131,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("reset-password")]
+        [AllowAnonymous]
         public ActionResult<ResetPasswordDto> ResetPassword(string token, string email)
         {
             var resetPassword = new ResetPasswordDto { Email = email, Token = token };
@@ -131,6 +139,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("reset-password")]
+        [AllowAnonymous]
         public async Task<ActionResult> ResetPassword(ResetPasswordDto resetPassword)
         {
             var user = await _userManager.FindByEmailAsync(resetPassword.Email);
@@ -146,15 +155,16 @@ namespace FileDocumentManagementSystem.Controllers
             
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateUser([FromForm] RegisterDto updateUser, string id)
+        [HttpPut("update-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult> UpdateUser([FromForm] RegisterDto updateUser, string userId)
         {
-            var user = await _unit.User.GetAsync(a => a.Id == id);
+            var user = await _unit.User.GetAsync(a => a.Id == userId);
            
             if(user != null)
             {
                 _mapper.Map(updateUser, user);
-                await _unit.User.AddAsync(user);
+                _unit.User.Update(user);
                 var count = await _unit.SaveChangesAsync();
 
                 if(count > 0)
@@ -168,10 +178,11 @@ namespace FileDocumentManagementSystem.Controllers
             return NotFound("User is not exists");
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteUser(string id)
+        [HttpDelete("delete-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult> DeleteUser(string userId)
         {
-            var user = await _unit.User.GetAsync(a => a.Id == id);
+            var user = await _unit.User.GetAsync(a => a.Id == userId);
 
             if(user != null)
             {

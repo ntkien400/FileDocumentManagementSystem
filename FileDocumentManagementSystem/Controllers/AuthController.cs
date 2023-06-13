@@ -2,9 +2,12 @@
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -35,6 +38,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("seed-roles")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> SeedRoles()
         {
             int count = 0;
@@ -59,6 +63,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("add-role")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> AddRole(string email,string roleName)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -83,7 +88,8 @@ namespace FileDocumentManagementSystem.Controllers
 
         }
 
-        [HttpPost("remove-role")]
+        [HttpDelete("remove-role")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> RemoveRole(string email, string roleName)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -97,6 +103,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("remove-all-roles")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> RemoveAllRoles(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -104,12 +111,14 @@ namespace FileDocumentManagementSystem.Controllers
             if (user != null && rolesUser != null)
             {
                 await _userManager.RemoveFromRolesAsync(user, rolesUser);
-                return Ok($"{email} has been removed all roles");
+                await _userManager.AddToRoleAsync(user, StaticUserRoles.Default);
+                return Ok($"{email} has been removed all roles, role become default only");
             }
             return BadRequest("Remove role failed, email or role name is wrong");
         }
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public async Task<ActionResult> Login(LoginDto login)
         {
             var user = await _userManager.FindByEmailAsync(login.Email);
@@ -132,6 +141,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("logout")]
+        [Authorize]
         public async Task<ActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -139,6 +149,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> RefreshToken(RefreshTokenDto refreshTokenDto)
         {
             var user = await GetUserFromAccessToken(refreshTokenDto.Token);
@@ -155,6 +166,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("disable-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DisabaleUser(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -170,6 +182,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("enable-user")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> EnableUser(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -185,6 +198,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("change-owner")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> ChangeOwner(string email, string password)
         {
             var newOwner = await _userManager.FindByEmailAsync(email);

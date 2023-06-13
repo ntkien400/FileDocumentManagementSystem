@@ -1,6 +1,10 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
+using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -16,17 +20,20 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-airport")]
-        public async Task<ActionResult<IEnumerable<Airport>>> GetAllAirport()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<Airport>>> GetAllAirport(int? pageIndex)
         {
             var listAirport = await _unit.Airport.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listAirport, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listAirport
+                Data = paginationResult
             });
         }
 
         [HttpGet("get-airport-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<IEnumerable<Airport>>> GetAirpoortById(string airportId)
         {
             var airport = await _unit.Airport.GetAsync(a => a.Id == airportId);
@@ -43,6 +50,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-airport")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Airport>> InsertAirport(string name, string airportCode)
         {
             if (name == null || airportCode == null)
@@ -84,6 +92,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-airport")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Airport>> UpdateAirport(string airportId, string name, string airportCode)
         {
             var airport = await _unit.Airport.GetAsync(a => a.Id == airportId);
@@ -110,6 +119,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-airport")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Airport>> DeleteAirport(string airportId)
         {
             var airport = await _unit.Airport.GetAsync(a => a.Id == airportId);

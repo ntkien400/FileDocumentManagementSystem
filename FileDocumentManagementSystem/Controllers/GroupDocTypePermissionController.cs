@@ -1,6 +1,10 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
+using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -16,17 +20,20 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-group-document-type-permission")]
-        public async Task<ActionResult<IEnumerable<GroupDocTypePermission>>> GetAllGroupDocumentTypePermission()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<GroupDocTypePermission>>> GetAllGroupDocumentTypePermission(int? pageIndex)
         {
             var listDocTypePermission = await _unit.GroupDocTypePermission.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listDocTypePermission, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listDocTypePermission
+                Data = paginationResult
             });
         }
 
         [HttpGet("get-group-document-type-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<GroupDocTypePermission>> GetGroupDocumentTypePermissionById(int id)
         {
             var docTypePermission = await _unit.GroupDocTypePermission.GetAsync(d => d.Id == id);
@@ -43,6 +50,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-group-document-type-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<GroupDocTypePermission>> InsertGroupDocumentTypePermission(string groupId, string documentTypeId, int permissionId)
         {
             var group = await _unit.Group.GetAsync(g => g.Id == groupId);
@@ -76,6 +84,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-group-document-type-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<GroupDocTypePermission>> UpdateGroupDocumentTypePermission(int id, string groupId, string documentTypeId, int permissionId)
         {
             var group = await _unit.Group.GetAsync(g => g.Id == groupId);
@@ -106,6 +115,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-group-document-type-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeleteGroupDcoumentTypePermission(int id)
         {
             var groupDocumentTypePermission = await _unit.GroupDocTypePermission.GetAsync(g => g.Id == id);

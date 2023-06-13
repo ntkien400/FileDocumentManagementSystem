@@ -1,8 +1,11 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -20,10 +23,11 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-members-by-group")]
-        public async Task<ActionResult> GetMembersByGroup(string groupId)
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult> GetMembersByGroup(string groupId, int? pageIndex)
         {
             var membersGroup = await _unit.GroupMember.GetAllAsync(m => m.GroupId == groupId);
-            if(membersGroup == null)
+            if (membersGroup == null)
             {
                 return NotFound();
             }
@@ -35,14 +39,16 @@ namespace FileDocumentManagementSystem.Controllers
                 listMember.Add(member);
             }
 
+            var paginationResult = PaginationHelper.Paginate(listMember, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listMember
+                Data = paginationResult
             });
         }
 
         [HttpPost("add-member")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> Addmember(string groupId,string userEmail)
         {
             var user = await _userManager.FindByEmailAsync(userEmail);
@@ -72,6 +78,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
         
         [HttpDelete("delete-member")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeleteMember(string userId)
         {
             var member = await _unit.GroupMember.GetAsync(m => m.UserId == userId);

@@ -2,7 +2,10 @@
 using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 
 namespace FileDocumentManagementSystem.Controllers
 {
@@ -19,17 +22,20 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-aircraft")]
-        public async Task<ActionResult<IEnumerable<Aircraft>>> GetAllAircraft()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<Aircraft>>> GetAllAircraft(int? pageIndex)
         {
-            var listAircrafr = await _unit.Aircraft.GetAllAsync();
+            var listAircraft = await _unit.Aircraft.GetAllAsync();
+            var paginationResult = PaginationHelper.Paginate(listAircraft, pageIndex);
             return Ok(new
             {
                 Message = "Success",
-                Data = listAircrafr
+                Data = paginationResult
             });
         }
 
         [HttpGet("get-aircraft-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Aircraft>> GetAircraftById(string aircraftId)
         {
             var aircraft = await _unit.Aircraft.GetAsync(a => a.Id == aircraftId);
@@ -46,6 +52,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-aircraft")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Aircraft>> InsertAircarft([FromForm]AircraftDto aircraftDto)
         {
             var checkFieldNotNull = aircraftDto.GetType()
@@ -87,6 +94,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPut("update-aircraft")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> UpdateAircraft(string aircraftId, [FromForm]AircraftDto aircraftDto)
         {
             var aircraft = await _unit.Aircraft.GetAsync(a => a.Id == aircraftId);
@@ -112,6 +120,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-aircraft")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeleteAircraft(string aircraftId)
         {
             var aircraft = await _unit.Aircraft.GetAsync(a => a.Id == aircraftId);

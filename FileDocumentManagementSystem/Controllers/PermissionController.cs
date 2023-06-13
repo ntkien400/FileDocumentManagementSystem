@@ -1,5 +1,7 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
+using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FileDocumentManagementSystem.Controllers
@@ -16,6 +18,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<IEnumerable<Permission>>> GetAllPermission()
         {
             var listPermission = await _unit.Permission.GetAllAsync();
@@ -27,6 +30,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-permission-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Permission>> GetPermissionById(int id)
         {
             var permission = await _unit.Permission.GetAsync(p => p.Id == id);
@@ -43,6 +47,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpPost("insert-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Permission>> InsertPermission(string permissionName)
         {
             if(permissionName == null)
@@ -68,6 +73,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
         
         [HttpPut("update-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> UpdatePermission([FromForm] Permission permissionDto)
         {
             var permission = await _unit.Permission.GetAsync(p => p.Id == permissionDto.Id);
@@ -93,6 +99,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-permission")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> DeletePermission(int id)
         {
             var permission = await _unit.Permission.GetAsync(p => p.Id == id);

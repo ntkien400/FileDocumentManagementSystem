@@ -1,10 +1,13 @@
 ﻿using FileDocument.DataAccess.UnitOfWork;
 using FileDocument.Models.Dtos;
 using FileDocument.Models.Entities;
+using FileDocumentManagementSystem.Helpers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.Security.Claims;
 
 namespace FileDocumentManagementSystem.Controllers
@@ -18,7 +21,8 @@ namespace FileDocumentManagementSystem.Controllers
             _unit = unit;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("get-group-by-id")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Group>> GetGroupById(string id)
         {
             var group = await _unit.Group.GetAsync(g => g.Id == id);
@@ -30,21 +34,21 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpGet("get-all-group")]
-        public async Task<ActionResult<IEnumerable<Group>>> GetAllGroup()
+        [Authorize(Roles = StaticUserRoles.Admin)]
+        public async Task<ActionResult<IEnumerable<Group>>> GetAllGroup(int? pageIndex)
         {
             var listGroup = await _unit.Group.GetAllAsync();
-            if(listGroup == null)
-            {
-                return NotFound("No group exists");
-            }
+            var paginationResult = PaginationHelper.Paginate(listGroup, pageIndex);
+
             return Ok(new
             {
                 Message = "Success",
-                Data = listGroup
+                Data = paginationResult
             });
         }
 
         [HttpPost("create-group")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult<Group>> CreateGroup(CreateGroupDto groupDto)
         {
             var group = await _unit.Group.GetAsync(g => g.Name == groupDto.Name);
@@ -95,6 +99,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
         
         [HttpPut("update-group")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> UpdateGroup(CreateGroupDto groupDto, string id)
         {
             var group = await _unit.Group.GetAsync(g => g.Id == id);
@@ -121,6 +126,7 @@ namespace FileDocumentManagementSystem.Controllers
         }
 
         [HttpDelete("delete-group")]
+        [Authorize(Roles = StaticUserRoles.Admin)]
         public async Task<ActionResult> Delete(string id)
         {
             var group = await _unit.Group.GetAsync(g => g.Id == id);
