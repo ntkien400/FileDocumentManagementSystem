@@ -79,9 +79,9 @@ namespace FileDocumentManagementSystem.Controllers
         
         [HttpDelete("delete-member")]
         [Authorize(Roles = StaticUserRoles.Admin)]
-        public async Task<ActionResult> DeleteMember(string userId)
+        public async Task<ActionResult> DeleteMember(string userId, string groupId)
         {
-            var member = await _unit.GroupMember.GetAsync(m => m.UserId == userId);
+            var member = await _unit.GroupMember.GetAsync(m => m.UserId == userId && m.GroupId == groupId);
             if(member == null)
             {
                 return NotFound("User does not exists");

@@ -74,7 +74,12 @@ namespace FileDocumentManagementSystem.Controllers
                 return BadRequest("Add role failed. Invalid email or role name.");
             }
 
-            if (roleName == StaticUserRoles.Admin)
+            if( await _userManager.IsInRoleAsync(user, roleName))
+            {
+                return BadRequest("User already have this role");
+            }
+
+            if (roleName == StaticUserRoles.Admin )
             {
                 var admin = await _userManager.GetUsersInRoleAsync(roleName);
                 if (admin != null)

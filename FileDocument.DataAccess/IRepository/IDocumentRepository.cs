@@ -7,5 +7,6 @@ namespace FileDocument.DataAccess.IRepository
         Task<IEnumerable<Document>> FilterDocuments(string? flightId = null, string? createdDate = null, string? typeDocumentId = null);
         Task<Document> CheckDocumentNameExistsInFlight(string fileName, string flightId);
         Task<int> GetUserPermission(string userId, string docTypeId);
+        Task<IEnumerable<Document>> SearchDocument(string? searchRequest);
     }
 }

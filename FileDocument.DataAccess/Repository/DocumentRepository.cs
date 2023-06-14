@@ -58,7 +58,18 @@ namespace FileDocument.DataAccess.Repository
                 query = query.Where(d => d.DocumentTypeId == typeDocumentId);
             }
 
-            return await query.ToListAsync();
+            return await query.GroupBy(d => d.DocumentTypeId).Select(d => d.OrderByDescending(d => d.Version).First()).ToListAsync();
+        }
+
+        public async Task<IEnumerable<Document>> SearchDocument(string? searchRequest)
+        {
+            IQueryable<Document> query = _dbContext.Documents;
+            if(searchRequest != null)
+            {
+                query = query.Where(d => d.FlightId == searchRequest || d.Name.Contains(searchRequest));
+            }
+
+            return await query.GroupBy(d => d.DocumentTypeId).Select(d => d.OrderByDescending(d => d.Version).First()).ToListAsync();
         }
     }
 }
